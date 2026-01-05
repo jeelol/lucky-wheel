@@ -2,85 +2,58 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>วงล้อนำโชค</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Wheel Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        /* ตกแต่งหน้าตาให้ดูเหมือนเว็บสุ่มรางวัลทั่วไป */
+        :root {
+            --primary: #ff4757;
+            --dark: #2f3542;
+        }
         body { 
-            text-align: center; 
-            font-family: 'Sarabun', sans-serif; 
-            background: #2c3e50; 
-            color: white;
-            padding: 20px; 
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            text-align: center; font-family: 'Sarabun', sans-serif; 
+            background: #f1f2f6; margin: 0; padding: 10px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh;
         }
+        #resultText { font-size: 28px; font-weight: bold; color: var(--primary); margin-bottom: 20px; height: 40px; }
+        
         .wheel-container { 
-            position: relative; 
-            display: inline-block; 
-            margin: 20px 0;
+            position: relative; width: 90vw; max-width: 450px; 
+            aspect-ratio: 1/1; margin: 0 auto;
         }
-        #wheel { 
-            background: white; 
-            border-radius: 50%; 
-            border: 10px solid #ecf0f1; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5); 
-        }
+        #wheel { width: 100%; height: 100%; border-radius: 50%; border: 8px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: white; }
+        
         .arrow { 
-            position: absolute; top: -25px; left: 50%; transform: translateX(-50%);
-            width: 0; height: 0; 
-            border-left: 20px solid transparent; 
-            border-right: 20px solid transparent;
-            border-top: 45px solid #e74c3c; 
-            z-index: 10;
-            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent;
+            border-top: 40px solid var(--dark); z-index: 10;
         }
+
+        .controls { margin-top: 30px; width: 100%; }
         button { 
-            margin-top: 30px; 
-            padding: 18px 60px; 
-            font-size: 24px; 
-            font-weight: bold;
-            cursor: pointer; 
-            background: #e74c3c; 
-            color: white; 
-            border: none; 
-            border-radius: 50px;
-            transition: all 0.2s ease;
-            box-shadow: 0 5px 0 #c0392b;
+            width: 80%; max-width: 300px; padding: 15px; font-size: 22px; font-weight: bold;
+            cursor: pointer; background: var(--primary); color: white; border: none; 
+            border-radius: 50px; transition: 0.3s; box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
         }
-        button:active { 
-            transform: translateY(3px);
-            box-shadow: 0 2px 0 #c0392b;
-        }
-        button:disabled { 
-            background: #7f8c8d; 
-            box-shadow: 0 5px 0 #95a5a6;
-            cursor: not-allowed; 
-        }
-        #resultText { 
-            font-size: 32px; 
-            font-weight: bold;
-            color: #f1c40f; 
-            height: 50px;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
+        button:hover { transform: scale(1.05); }
+        button:active { transform: scale(0.95); }
+        button:disabled { background: #ccc; box-shadow: none; }
     </style>
 </head>
 <body>
 
-    <div id="resultText">ขอให้โชคดี!</div>
+    <div id="resultText">กดปุ่มเพื่อเริ่มสุ่ม!</div>
 
     <div class="wheel-container">
         <div class="arrow"></div>
-        <canvas id="wheel" width="450" height="450"></canvas>
+        <canvas id="wheel" width="500" height="500"></canvas>
     </div>
 
-    <br>
-    <button id="spinBtn">เริ่มหมุน</button>
+    <div class="controls">
+        <button id="spinBtn">หมุนเลย!</button>
+    </div>
 
 <script>
     const canvas = document.getElementById("wheel");
@@ -88,83 +61,95 @@
     const spinBtn = document.getElementById("spinBtn");
     const resultText = document.getElementById("resultText");
 
-    const options = ["100บาท", "เกลือ", "รางวัลที่ 2", "ลองใหม่", "รางวัลที่ 3", "โชคดีมาก"];
-    const colors = ["#f1c40f", "#e67e22", "#e74c3c", "#9b59b6", "#3498db", "#2ecc71"];
-    
-    // --- ตั้งค่าโอกาส (%) ไว้ในตัวแปรที่ไม่สะดุดตา ---
-    // ลำดับตามรายการด้านบน: [5%, 60%, 10%, 15%, 5%, 5%]
-    const _pData = [5, 60, 10, 15, 5, 5]; 
+    const options = ["รางวัลที่ 1", "กินแห้ว", "รางวัลที่ 2", "ลองใหม่", "รางวัลที่ 3", "โชคดีมาก"];
+    const colors = ["#ff9f43", "#ee5253", "#0abde3", "#10ac84", "#5f27cd", "#f368e0"];
+    const _pData = [5, 50, 10, 20, 10, 5]; // เปอร์เซ็นต์ (%)
 
     let currentAngle = 0;
     let isSpinning = false;
+    let lastSoundIndex = -1;
+
+    // สร้างเสียงประกอบแบบสังเคราะห์ (ไม่ต้องโหลดไฟล์ .mp3)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTick() {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    }
 
     function draw() {
         const arc = (Math.PI * 2) / options.length;
-        ctx.clearRect(0, 0, 450, 450);
-        
+        ctx.clearRect(0, 0, 500, 500);
         options.forEach((text, i) => {
             const angle = currentAngle + i * arc;
             ctx.fillStyle = colors[i];
             ctx.beginPath();
-            ctx.moveTo(225, 225);
-            ctx.arc(225, 225, 225, angle, angle + arc);
+            ctx.moveTo(250, 250);
+            ctx.arc(250, 250, 250, angle, angle + arc);
             ctx.fill();
-
             ctx.save();
-            ctx.fillStyle = "white";
-            ctx.font = "bold 18px Arial";
-            ctx.translate(225 + Math.cos(angle + arc/2) * 160, 225 + Math.sin(angle + arc/2) * 160);
+            ctx.fillStyle = "white"; ctx.font = "bold 20px Sarabun";
+            ctx.translate(250 + Math.cos(angle + arc/2) * 170, 250 + Math.sin(angle + arc/2) * 170);
             ctx.rotate(angle + arc/2 + Math.PI/2);
             ctx.fillText(text, -ctx.measureText(text).width/2, 0);
             ctx.restore();
         });
     }
 
-    function pickWinner() {
-        const total = _pData.reduce((a, b) => a + b, 0);
-        let r = Math.random() * total;
+    function getWinner() {
+        let r = Math.random() * 100;
+        let sum = 0;
         for (let i = 0; i < _pData.length; i++) {
-            if (r < _pData[i]) return i;
-            r -= _pData[i];
+            sum += _pData[i];
+            if (r <= sum) return i;
         }
         return 0;
     }
 
-    spinBtn.onclick = function() {
+    spinBtn.onclick = () => {
         if (isSpinning) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        
         isSpinning = true;
         spinBtn.disabled = true;
-        resultText.innerText = "กำลังสุ่มรางวัล...";
+        resultText.innerText = "กำลังลุ้น...";
 
-        const winnerIndex = pickWinner();
-        const rounds = 7 + Math.floor(Math.random() * 5); 
-        const degreePerSector = 360 / options.length;
+        const winnerIndex = getWinner();
+        const rotationRounds = 8 + Math.floor(Math.random() * 5);
+        const sectorDeg = 360 / options.length;
+        const targetDeg = (rotationRounds * 360) + (270 - (winnerIndex * sectorDeg) - (sectorDeg / 2));
         
-        // คำนวณจุดหยุดให้แม่นยำ (270 องศาคือจุดยอดเข็ม)
-        const stopDeg = (rounds * 360) + (270 - (winnerIndex * degreePerSector) - (degreePerSector / 2));
-        
-        const startRotation = currentAngle * 180 / Math.PI;
-        const totalDist = stopDeg - (startRotation % 360);
+        const startDeg = currentAngle * 180 / Math.PI;
+        const totalDist = targetDeg - (startDeg % 360);
         const duration = 5000;
         const startTime = performance.now();
 
         function animate(now) {
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / duration, 1);
+            const ease = 1 - Math.pow(1 - progress, 4);
+            const currentDeg = startDeg + (totalDist * ease);
+            currentAngle = currentDeg * Math.PI / 180;
             
-            // ใช้ Ease Out Quart เพื่อให้ช่วงท้ายหมุนช้าๆ ลุ้นๆ
-            const ease = 1 - Math.pow(1 - progress, 4); 
-            const nextRotation = startRotation + (totalDist * ease);
-            
-            currentAngle = nextRotation * Math.PI / 180;
-            draw();
+            // เล่นเสียง Tick เมื่อเลื่อนผ่านช่อง
+            const currentSector = Math.floor((360 - (currentDeg % 360)) / sectorDeg) % options.length;
+            if (currentSector !== lastSoundIndex) {
+                playTick();
+                lastSoundIndex = currentSector;
+            }
 
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            } else {
+            draw();
+            if (progress < 1) requestAnimationFrame(animate);
+            else {
                 isSpinning = false;
                 spinBtn.disabled = false;
-                resultText.innerText = "ยินดีด้วยคุณได้รับ: " + options[winnerIndex];
+                resultText.innerText = "ยินดีด้วย! " + options[winnerIndex];
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             }
         }
         requestAnimationFrame(animate);
@@ -172,7 +157,5 @@
 
     draw();
 </script>
-
 </body>
-
 </html>
