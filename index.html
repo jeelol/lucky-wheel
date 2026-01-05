@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>วงล้อนำโชค</title>
+    <style>
+        /* ตกแต่งหน้าตาให้ดูเหมือนเว็บสุ่มรางวัลทั่วไป */
+        body { 
+            text-align: center; 
+            font-family: 'Sarabun', sans-serif; 
+            background: #2c3e50; 
+            color: white;
+            padding: 20px; 
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .wheel-container { 
+            position: relative; 
+            display: inline-block; 
+            margin: 20px 0;
+        }
+        #wheel { 
+            background: white; 
+            border-radius: 50%; 
+            border: 10px solid #ecf0f1; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5); 
+        }
+        .arrow { 
+            position: absolute; top: -25px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; 
+            border-left: 20px solid transparent; 
+            border-right: 20px solid transparent;
+            border-top: 45px solid #e74c3c; 
+            z-index: 10;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
+        }
+        button { 
+            margin-top: 30px; 
+            padding: 18px 60px; 
+            font-size: 24px; 
+            font-weight: bold;
+            cursor: pointer; 
+            background: #e74c3c; 
+            color: white; 
+            border: none; 
+            border-radius: 50px;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 0 #c0392b;
+        }
+        button:active { 
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #c0392b;
+        }
+        button:disabled { 
+            background: #7f8c8d; 
+            box-shadow: 0 5px 0 #95a5a6;
+            cursor: not-allowed; 
+        }
+        #resultText { 
+            font-size: 32px; 
+            font-weight: bold;
+            color: #f1c40f; 
+            height: 50px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="resultText">ขอให้โชคดี!</div>
+
+    <div class="wheel-container">
+        <div class="arrow"></div>
+        <canvas id="wheel" width="450" height="450"></canvas>
+    </div>
+
+    <br>
+    <button id="spinBtn">เริ่มหมุน</button>
+
+<script>
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const spinBtn = document.getElementById("spinBtn");
+    const resultText = document.getElementById("resultText");
+
+    const options = ["รางวัลที่ 1", "กินแห้ว", "รางวัลที่ 2", "ลองใหม่", "รางวัลที่ 3", "โชคดีมาก"];
+    const colors = ["#f1c40f", "#e67e22", "#e74c3c", "#9b59b6", "#3498db", "#2ecc71"];
+    
+    // --- ตั้งค่าโอกาส (%) ไว้ในตัวแปรที่ไม่สะดุดตา ---
+    // ลำดับตามรายการด้านบน: [5%, 60%, 10%, 15%, 5%, 5%]
+    const _pData = [5, 60, 10, 15, 5, 5]; 
+
+    let currentAngle = 0;
+    let isSpinning = false;
+
+    function draw() {
+        const arc = (Math.PI * 2) / options.length;
+        ctx.clearRect(0, 0, 450, 450);
+        
+        options.forEach((text, i) => {
+            const angle = currentAngle + i * arc;
+            ctx.fillStyle = colors[i];
+            ctx.beginPath();
+            ctx.moveTo(225, 225);
+            ctx.arc(225, 225, 225, angle, angle + arc);
+            ctx.fill();
+
+            ctx.save();
+            ctx.fillStyle = "white";
+            ctx.font = "bold 18px Arial";
+            ctx.translate(225 + Math.cos(angle + arc/2) * 160, 225 + Math.sin(angle + arc/2) * 160);
+            ctx.rotate(angle + arc/2 + Math.PI/2);
+            ctx.fillText(text, -ctx.measureText(text).width/2, 0);
+            ctx.restore();
+        });
+    }
+
+    function pickWinner() {
+        const total = _pData.reduce((a, b) => a + b, 0);
+        let r = Math.random() * total;
+        for (let i = 0; i < _pData.length; i++) {
+            if (r < _pData[i]) return i;
+            r -= _pData[i];
+        }
+        return 0;
+    }
+
+    spinBtn.onclick = function() {
+        if (isSpinning) return;
+        isSpinning = true;
+        spinBtn.disabled = true;
+        resultText.innerText = "กำลังสุ่มรางวัล...";
+
+        const winnerIndex = pickWinner();
+        const rounds = 7 + Math.floor(Math.random() * 5); 
+        const degreePerSector = 360 / options.length;
+        
+        // คำนวณจุดหยุดให้แม่นยำ (270 องศาคือจุดยอดเข็ม)
+        const stopDeg = (rounds * 360) + (270 - (winnerIndex * degreePerSector) - (degreePerSector / 2));
+        
+        const startRotation = currentAngle * 180 / Math.PI;
+        const totalDist = stopDeg - (startRotation % 360);
+        const duration = 5000;
+        const startTime = performance.now();
+
+        function animate(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // ใช้ Ease Out Quart เพื่อให้ช่วงท้ายหมุนช้าๆ ลุ้นๆ
+            const ease = 1 - Math.pow(1 - progress, 4); 
+            const nextRotation = startRotation + (totalDist * ease);
+            
+            currentAngle = nextRotation * Math.PI / 180;
+            draw();
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                isSpinning = false;
+                spinBtn.disabled = false;
+                resultText.innerText = "ยินดีด้วยคุณได้รับ: " + options[winnerIndex];
+            }
+        }
+        requestAnimationFrame(animate);
+    };
+
+    draw();
+</script>
+
+</body>
+</html>
