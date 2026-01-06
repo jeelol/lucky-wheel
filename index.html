@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golden Risk - วงล้อแห่งโชคชะตา</title>
+    <title>Golden Risk - วงล้อแห่งความเสี่ยงระดับสูงสุด</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&family=Goldman:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
             --gold: #FFD700;
             --dark-gold: #B8860B;
-            --bg: #1a1a1a;
-            --accent: #ff4757;
+            --bg: #0a0a0a;
         }
         body { 
             text-align: center; font-family: 'Sarabun', sans-serif; 
@@ -20,59 +19,71 @@
             min-height: 100vh; overflow: hidden;
         }
         h1 { 
-            font-family: 'Goldman', cursive; font-size: 42px; color: var(--gold);
-            margin: 0 0 10px 0; text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-            letter-spacing: 2px;
+            font-family: 'Goldman', cursive; font-size: clamp(32px, 10vw, 56px); 
+            color: var(--gold); margin: 0 0 5px 0;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.7);
+            letter-spacing: 4px;
         }
-        #resultText { font-size: 24px; font-weight: bold; color: white; margin-bottom: 20px; height: 35px; }
+        #resultText { 
+            font-size: 22px; font-weight: bold; color: #eee; 
+            margin-bottom: 25px; height: 35px; 
+            text-shadow: 1px 1px 10px rgba(0,0,0,0.8);
+        }
         
+        /* กรอบวงล้อหรูหรา */
         .wheel-outer {
             position: relative; padding: 15px; border-radius: 50%;
-            background: linear-gradient(145deg, var(--gold), var(--dark-gold));
-            box-shadow: 0 0 50px rgba(184, 134, 11, 0.4);
+            background: linear-gradient(145deg, #FFD700, #443300, #B8860B);
+            box-shadow: 0 0 80px rgba(184, 134, 11, 0.6);
+            border: 2px solid rgba(255, 215, 0, 0.3);
         }
         .wheel-container { 
-            position: relative; width: 85vw; max-width: 420px; 
-            aspect-ratio: 1/1;
+            position: relative; width: 88vw; max-width: 460px; aspect-ratio: 1/1;
         }
-        #wheel { width: 100%; height: 100%; border-radius: 50%; background: #222; }
+        #wheel { width: 100%; height: 100%; border-radius: 50%; background: #000; }
         
+        /* เข็มชี้ดีไซน์พรีเมียม */
         .arrow { 
-            position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
-            width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent;
-            border-top: 45px solid white; z-index: 10;
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));
+            position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 25px solid transparent; border-right: 25px solid transparent;
+            border-top: 50px solid #fff; z-index: 30;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,1));
+        }
+        .arrow::after {
+            content: ''; position: absolute; top: -52px; left: -10px;
+            width: 20px; height: 20px; background: var(--gold); border-radius: 50%;
         }
 
-        .controls { margin-top: 40px; width: 100%; }
+        .controls { margin-top: 45px; width: 100%; }
         button { 
-            width: 80%; max-width: 280px; padding: 18px; font-size: 24px; font-family: 'Goldman';
+            width: 85%; max-width: 320px; padding: 20px; font-size: 28px; font-family: 'Goldman';
             cursor: pointer; background: linear-gradient(to bottom, #FFD700, #B8860B); 
-            color: #000; border: none; border-radius: 10px; font-weight: bold;
-            transition: 0.2s; box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            color: #000; border: none; border-radius: 15px; font-weight: bold;
+            transition: 0.2s; box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            text-transform: uppercase; letter-spacing: 1px;
         }
-        button:hover { transform: scale(1.05); filter: brightness(1.2); }
-        button:disabled { background: #444; color: #888; box-shadow: none; filter: none; }
+        button:hover { transform: scale(1.05); filter: brightness(1.25); }
+        button:active { transform: scale(0.95); }
+        button:disabled { background: #222; color: #555; box-shadow: none; filter: grayscale(1); cursor: not-allowed; }
 
-        /* Effect เขย่าจอ */
-        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
+        /* เอฟเฟกต์สั่นตอนจบ */
+        .shake-screen { animation: heavyShake 0.6s ease-out; }
+        @keyframes heavyShake {
+            0%, 100% { transform: translate(0,0); }
+            10%, 30%, 50%, 70%, 90% { transform: translate(-8px, 0); }
+            20%, 40%, 60%, 80% { transform: translate(8px, 0); }
         }
     </style>
 </head>
 <body id="mainBody">
 
     <h1>GOLDEN RISK</h1>
-    <div id="resultText">กล้าได้กล้าเสีย... คุณพร้อมหรือยัง?</div>
+    <div id="resultText">ชะตาที่ลิขิตด้วยความเสี่ยง...</div>
 
     <div class="wheel-outer">
         <div class="wheel-container">
             <div class="arrow"></div>
-            <canvas id="wheel" width="500" height="500"></canvas>
+            <canvas id="wheel" width="600" height="600"></canvas>
         </div>
     </div>
 
@@ -87,50 +98,67 @@
     const resultText = document.getElementById("resultText");
     const mainBody = document.getElementById("mainBody");
 
-    // รายการ 7 อย่าง
+    // รายการรางวัล 7 ช่อง
     const options = ["100บาท", "เกลือ", "20บาท", "10บาท", "นํ้าส้มสายชู", "1บาท", "???"];
     const colors = ["#000000", "#d4af37", "#000000", "#d4af37", "#000000", "#d4af37", "#cc0000"];
-    const _pData = [0.001, 33.499, 10, 15, 20, 20, 1.5]; // ปรับโอกาสเล็กน้อยให้ครบ 100
+    
+    // ตั้งค่าเปอร์เซ็นต์ (รวมต้องได้ 100)
+    const _pData = [0.001, 33.499, 10, 15, 20, 20, 1.5]; 
 
     let currentAngle = 0;
     let isSpinning = false;
     let lastSoundIndex = -1;
 
+    // ระบบเสียงสังเคราะห์
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playTick() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
         osc.start(); osc.stop(audioCtx.currentTime + 0.05);
     }
 
     function draw() {
         const arc = (Math.PI * 2) / options.length;
-        ctx.clearRect(0, 0, 500, 500);
+        ctx.clearRect(0, 0, 600, 600);
+        
         options.forEach((text, i) => {
             const angle = currentAngle + i * arc;
+            
+            // พื้นหลังช่อง
             ctx.fillStyle = colors[i];
             ctx.beginPath();
-            ctx.moveTo(250, 250);
-            ctx.arc(250, 250, 245, angle, angle + arc);
+            ctx.moveTo(300, 300);
+            ctx.arc(300, 300, 295, angle, angle + arc);
             ctx.fill();
             
-            // เส้นขอบสีทอง
+            // เส้นแบ่งขอบทอง
             ctx.strokeStyle = "#FFD700";
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 4;
             ctx.stroke();
 
+            // ตัวอักษร
             ctx.save();
-            ctx.fillStyle = colors[i] === "#000000" || colors[i] === "#cc0000" ? "#FFD700" : "#000";
-            ctx.font = "bold 22px Sarabun";
-            ctx.translate(250 + Math.cos(angle + arc/2) * 160, 250 + Math.sin(angle + arc/2) * 160);
+            ctx.fillStyle = (colors[i] === "#000000" || colors[i] === "#cc0000") ? "#FFD700" : "#000000";
+            ctx.font = "bold 26px Sarabun";
+            ctx.translate(300 + Math.cos(angle + arc/2) * 190, 300 + Math.sin(angle + arc/2) * 190);
             ctx.rotate(angle + arc/2 + Math.PI / 2);
             ctx.fillText(text, -ctx.measureText(text).width/2, 0);
             ctx.restore();
         });
+
+        // จุดศูนย์กลาง
+        ctx.fillStyle = "#FFD700";
+        ctx.beginPath();
+        ctx.arc(300, 300, 20, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 3;
+        ctx.stroke();
     }
 
     function getWinner() {
@@ -140,53 +168,63 @@
             sum += _pData[i];
             if (r <= sum) return i;
         }
-        return options.length - 1;
+        return 1;
     }
 
     spinBtn.onclick = () => {
         if (isSpinning) return;
-        if (audioCtx.state === 'suspended') audioCtx.resume();
         
         isSpinning = true;
         spinBtn.disabled = true;
-        resultText.innerText = "กำลังวัดใจ...";
-        mainBody.classList.remove("shake");
+        resultText.innerText = "กำลังคำนวณโชคชะตา...";
+        mainBody.classList.remove("shake-screen");
 
         const winnerIndex = getWinner();
-        const rotationRounds = 10 + Math.floor(Math.random() * 5); // หมุนหลายรอบขึ้นเพื่อความลุ้น
+        const rotationRounds = 18; // หมุนหลายรอบเพื่อให้เร็วในช่วงแรก
         const sectorDeg = 360 / options.length;
-        const targetDeg = (rotationRounds * 360) + (270 - (winnerIndex * sectorDeg) - (sectorDeg / 2));
+        
+        // Random Offset: สุ่มที่หยุดภายในช่อง (15% - 85%)
+        const randomPosInSector = (Math.random() * 0.7 + 0.15) * sectorDeg;
+        const targetDeg = (rotationRounds * 360) + (270 - (winnerIndex * sectorDeg) - randomPosInSector);
         
         const startDeg = currentAngle * 180 / Math.PI;
         const totalDist = targetDeg - (startDeg % 360);
-        const duration = 7000; // เพิ่มเวลาหมุนเป็น 7 วินาทีให้ลุ้นนานขึ้น
+        
+        // --- ความหนืดขีดสุด: 10 วินาที ---
+        const duration = 10000; 
         const startTime = performance.now();
 
         function animate(now) {
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / duration, 1);
             
-            // ปรับสูตรความช้า (Ease Out Quart) ให้ดูลุ้นขึ้นในช่วงท้าย
-            const ease = 1 - Math.pow(1 - progress, 4);
+            // Ease Out Quint: หนืดมากที่สุดในช่วง 3 วินาทีสุดท้าย
+            const ease = 1 - Math.pow(1 - progress, 5);
+            
             const currentDeg = startDeg + (totalDist * ease);
             currentAngle = currentDeg * Math.PI / 180;
             
-            const currentSector = Math.floor((360 - (currentDeg % 360)) / sectorDeg) % options.length;
+            // เช็คช่องปัจจุบันเพื่อเล่นเสียงคลิก
+            const currentSector = Math.floor((270 - (currentDeg % 360) + 360) % 360 / sectorDeg);
             if (currentSector !== lastSoundIndex) {
                 playTick();
                 lastSoundIndex = currentSector;
             }
 
             draw();
-            if (progress < 1) requestAnimationFrame(animate);
-            else {
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
                 isSpinning = false;
                 spinBtn.disabled = false;
                 resultText.innerText = "ผลลัพธ์: " + options[winnerIndex];
-                mainBody.classList.add("shake");
+                
+                // เอฟเฟกต์กระแทกตอนหยุด
+                mainBody.classList.add("shake-screen");
                 confetti({ 
-                    particleCount: 200, spread: 100, origin: { y: 0.6 },
-                    colors: ['#FFD700', '#FFFFFF', '#B8860B']
+                    particleCount: 250, spread: 80, origin: { y: 0.6 },
+                    colors: ['#FFD700', '#FFFFFF', '#B8860B', '#FF0000']
                 });
             }
         }
@@ -197,6 +235,7 @@
 </script>
 </body>
 </html>
+
 
 
 
