@@ -3,56 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lucky Wheel Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <title>Golden Risk - วงล้อแห่งโชคชะตา</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&family=Goldman:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --primary: #ff4757;
-            --dark: #2f3542;
+            --gold: #FFD700;
+            --dark-gold: #B8860B;
+            --bg: #1a1a1a;
+            --accent: #ff4757;
         }
         body { 
             text-align: center; font-family: 'Sarabun', sans-serif; 
-            background: #f1f2f6; margin: 0; padding: 10px;
+            background: var(--bg); color: white; margin: 0; padding: 10px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh;
+            min-height: 100vh; overflow: hidden;
         }
-        #resultText { font-size: 28px; font-weight: bold; color: var(--primary); margin-bottom: 20px; height: 40px; }
+        h1 { 
+            font-family: 'Goldman', cursive; font-size: 42px; color: var(--gold);
+            margin: 0 0 10px 0; text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            letter-spacing: 2px;
+        }
+        #resultText { font-size: 24px; font-weight: bold; color: white; margin-bottom: 20px; height: 35px; }
         
-        .wheel-container { 
-            position: relative; width: 90vw; max-width: 450px; 
-            aspect-ratio: 1/1; margin: 0 auto;
+        .wheel-outer {
+            position: relative; padding: 15px; border-radius: 50%;
+            background: linear-gradient(145deg, var(--gold), var(--dark-gold));
+            box-shadow: 0 0 50px rgba(184, 134, 11, 0.4);
         }
-        #wheel { width: 100%; height: 100%; border-radius: 50%; border: 8px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: white; }
+        .wheel-container { 
+            position: relative; width: 85vw; max-width: 420px; 
+            aspect-ratio: 1/1;
+        }
+        #wheel { width: 100%; height: 100%; border-radius: 50%; background: #222; }
         
         .arrow { 
-            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
             width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent;
-            border-top: 40px solid var(--dark); z-index: 10;
+            border-top: 45px solid white; z-index: 10;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));
         }
 
-        .controls { margin-top: 30px; width: 100%; }
+        .controls { margin-top: 40px; width: 100%; }
         button { 
-            width: 80%; max-width: 300px; padding: 15px; font-size: 22px; font-weight: bold;
-            cursor: pointer; background: var(--primary); color: white; border: none; 
-            border-radius: 50px; transition: 0.3s; box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
+            width: 80%; max-width: 280px; padding: 18px; font-size: 24px; font-family: 'Goldman';
+            cursor: pointer; background: linear-gradient(to bottom, #FFD700, #B8860B); 
+            color: #000; border: none; border-radius: 10px; font-weight: bold;
+            transition: 0.2s; box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
         }
-        button:hover { transform: scale(1.05); }
-        button:active { transform: scale(0.95); }
-        button:disabled { background: #ccc; box-shadow: none; }
+        button:hover { transform: scale(1.05); filter: brightness(1.2); }
+        button:disabled { background: #444; color: #888; box-shadow: none; filter: none; }
+
+        /* Effect เขย่าจอ */
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
     </style>
 </head>
-<body>
+<body id="mainBody">
 
-    <div id="resultText">กดปุ่มเพื่อเริ่มสุ่ม!</div>
+    <h1>GOLDEN RISK</h1>
+    <div id="resultText">กล้าได้กล้าเสีย... คุณพร้อมหรือยัง?</div>
 
-    <div class="wheel-container">
-        <div class="arrow"></div>
-        <canvas id="wheel" width="500" height="500"></canvas>
+    <div class="wheel-outer">
+        <div class="wheel-container">
+            <div class="arrow"></div>
+            <canvas id="wheel" width="500" height="500"></canvas>
+        </div>
     </div>
 
     <div class="controls">
-        <button id="spinBtn">หมุนเลย!</button>
+        <button id="spinBtn">SPIN THE RISK</button>
     </div>
 
 <script>
@@ -60,26 +85,26 @@
     const ctx = canvas.getContext("2d");
     const spinBtn = document.getElementById("spinBtn");
     const resultText = document.getElementById("resultText");
+    const mainBody = document.getElementById("mainBody");
 
-    const options = ["100บาท", "เกลือ", "20บาท", "10บาท", "นํ้าส้มสายชู", "1บาท"];
-    const colors = ["#ff9f43", "#ee5253", "#0abde3", "#10ac84", "#5f27cd", "#f368e0"];
-    const _pData = [0.001, 43.499, 1, 2, 43.5, 10]; // เปอร์เซ็นต์ (%)
+    // รายการ 7 อย่าง
+    const options = ["100บาท", "เกลือ", "20บาท", "10บาท", "นํ้าส้มสายชู", "1บาท", "???"];
+    const colors = ["#000000", "#d4af37", "#000000", "#d4af37", "#000000", "#d4af37", "#cc0000"];
+    const _pData = [0.001, 33.499, 10, 15, 20, 20, 1.5]; // ปรับโอกาสเล็กน้อยให้ครบ 100
 
     let currentAngle = 0;
     let isSpinning = false;
     let lastSoundIndex = -1;
 
-    // สร้างเสียงประกอบแบบสังเคราะห์ (ไม่ต้องโหลดไฟล์ .mp3)
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playTick() {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.05);
     }
 
     function draw() {
@@ -90,12 +115,19 @@
             ctx.fillStyle = colors[i];
             ctx.beginPath();
             ctx.moveTo(250, 250);
-            ctx.arc(250, 250, 250, angle, angle + arc);
+            ctx.arc(250, 250, 245, angle, angle + arc);
             ctx.fill();
+            
+            // เส้นขอบสีทอง
+            ctx.strokeStyle = "#FFD700";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
             ctx.save();
-            ctx.fillStyle = "white"; ctx.font = "bold 20px Sarabun";
-            ctx.translate(250 + Math.cos(angle + arc/2) * 170, 250 + Math.sin(angle + arc/2) * 170);
-            ctx.rotate(angle + arc/2 + Math.PI/2);
+            ctx.fillStyle = colors[i] === "#000000" || colors[i] === "#cc0000" ? "#FFD700" : "#000";
+            ctx.font = "bold 22px Sarabun";
+            ctx.translate(250 + Math.cos(angle + arc/2) * 160, 250 + Math.sin(angle + arc/2) * 160);
+            ctx.rotate(angle + arc/2 + Math.PI / 2);
             ctx.fillText(text, -ctx.measureText(text).width/2, 0);
             ctx.restore();
         });
@@ -108,7 +140,7 @@
             sum += _pData[i];
             if (r <= sum) return i;
         }
-        return 0;
+        return options.length - 1;
     }
 
     spinBtn.onclick = () => {
@@ -117,26 +149,28 @@
         
         isSpinning = true;
         spinBtn.disabled = true;
-        resultText.innerText = "กำลังลุ้น...";
+        resultText.innerText = "กำลังวัดใจ...";
+        mainBody.classList.remove("shake");
 
         const winnerIndex = getWinner();
-        const rotationRounds = 8 + Math.floor(Math.random() * 5);
+        const rotationRounds = 10 + Math.floor(Math.random() * 5); // หมุนหลายรอบขึ้นเพื่อความลุ้น
         const sectorDeg = 360 / options.length;
         const targetDeg = (rotationRounds * 360) + (270 - (winnerIndex * sectorDeg) - (sectorDeg / 2));
         
         const startDeg = currentAngle * 180 / Math.PI;
         const totalDist = targetDeg - (startDeg % 360);
-        const duration = 5000;
+        const duration = 7000; // เพิ่มเวลาหมุนเป็น 7 วินาทีให้ลุ้นนานขึ้น
         const startTime = performance.now();
 
         function animate(now) {
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / duration, 1);
+            
+            // ปรับสูตรความช้า (Ease Out Quart) ให้ดูลุ้นขึ้นในช่วงท้าย
             const ease = 1 - Math.pow(1 - progress, 4);
             const currentDeg = startDeg + (totalDist * ease);
             currentAngle = currentDeg * Math.PI / 180;
             
-            // เล่นเสียง Tick เมื่อเลื่อนผ่านช่อง
             const currentSector = Math.floor((360 - (currentDeg % 360)) / sectorDeg) % options.length;
             if (currentSector !== lastSoundIndex) {
                 playTick();
@@ -148,8 +182,12 @@
             else {
                 isSpinning = false;
                 spinBtn.disabled = false;
-                resultText.innerText = "ยินดีด้วย! " + options[winnerIndex];
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                resultText.innerText = "ผลลัพธ์: " + options[winnerIndex];
+                mainBody.classList.add("shake");
+                confetti({ 
+                    particleCount: 200, spread: 100, origin: { y: 0.6 },
+                    colors: ['#FFD700', '#FFFFFF', '#B8860B']
+                });
             }
         }
         requestAnimationFrame(animate);
@@ -159,7 +197,6 @@
 </script>
 </body>
 </html>
-
 
 
 
