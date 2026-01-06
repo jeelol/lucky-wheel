@@ -2,93 +2,108 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golden Risk - วงล้อแห่งความเสี่ยงระดับสูงสุด</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Golden Risk - Mobile Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&family=Goldman:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
             --gold: #FFD700;
             --dark-gold: #B8860B;
-            --bg: #0a0a0a;
+            --bg: #050505;
         }
         body { 
             text-align: center; font-family: 'Sarabun', sans-serif; 
-            background: var(--bg); color: white; margin: 0; padding: 10px;
+            background: var(--bg); color: white; margin: 0; padding: 0;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; overflow: hidden;
-        }
-        h1 { 
-            font-family: 'Goldman', cursive; font-size: clamp(32px, 10vw, 56px); 
-            color: var(--gold); margin: 0 0 5px 0;
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.7);
-            letter-spacing: 4px;
-        }
-        #resultText { 
-            font-size: 22px; font-weight: bold; color: #eee; 
-            margin-bottom: 25px; height: 35px; 
-            text-shadow: 1px 1px 10px rgba(0,0,0,0.8);
+            /* ใช้ dvh เพื่อให้เต็มจอจริงบนมือถือ (ไม่รวม address bar) */
+            min-height: 100dvh; 
+            overflow: hidden;
+            touch-action: manipulation; /* ป้องกันการ delay เวลากดปุ่มบนมือถือ */
         }
         
-        /* กรอบวงล้อหรูหรา */
+        h1 { 
+            font-family: 'Goldman', cursive; 
+            font-size: clamp(36px, 12vw, 60px); /* ปรับขนาดอักษรตามจอ */
+            color: var(--gold); margin: 0 0 5px 0;
+            text-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+            letter-spacing: 2px;
+            line-height: 1.1;
+        }
+        
+        #resultText { 
+            font-size: clamp(18px, 5vw, 24px); 
+            font-weight: bold; color: #ccc; 
+            margin-bottom: 15px; height: 30px; 
+            text-shadow: 1px 1px 5px rgba(0,0,0,0.8);
+        }
+        
+        /* ปรับวงล้อให้ใหญ่เกือบเต็มจอมือถือ */
         .wheel-outer {
-            position: relative; padding: 15px; border-radius: 50%;
-            background: linear-gradient(145deg, #FFD700, #443300, #B8860B);
-            box-shadow: 0 0 80px rgba(184, 134, 11, 0.6);
-            border: 2px solid rgba(255, 215, 0, 0.3);
+            position: relative; padding: 10px; border-radius: 50%;
+            background: linear-gradient(145deg, #FFD700, #5c4505, #B8860B);
+            box-shadow: 0 0 40px rgba(184, 134, 11, 0.4);
+            border: 2px solid rgba(255, 215, 0, 0.2);
         }
         .wheel-container { 
-            position: relative; width: 88vw; max-width: 460px; aspect-ratio: 1/1;
+            position: relative; 
+            width: 92vw; /* กว้าง 92% ของจอมือถือ */
+            max-width: 500px; 
+            aspect-ratio: 1/1;
         }
         #wheel { width: 100%; height: 100%; border-radius: 50%; background: #000; }
         
-        /* เข็มชี้ดีไซน์พรีเมียม */
         .arrow { 
-            position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
-            width: 0; height: 0; border-left: 25px solid transparent; border-right: 25px solid transparent;
-            border-top: 50px solid #fff; z-index: 30;
-            filter: drop-shadow(0 0 15px rgba(255,255,255,1));
-        }
-        .arrow::after {
-            content: ''; position: absolute; top: -52px; left: -10px;
-            width: 20px; height: 20px; background: var(--gold); border-radius: 50%;
+            position: absolute; top: -25px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent;
+            border-top: 45px solid #fff; z-index: 30;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.9));
         }
 
-        .controls { margin-top: 45px; width: 100%; }
+        .controls { 
+            margin-top: 30px; 
+            width: 100%; 
+            display: flex; 
+            justify-content: center;
+        }
+        
+        /* ปุ่มขนาดใหญ่กดง่ายสำหรับนิ้วโป้ง */
         button { 
-            width: 85%; max-width: 320px; padding: 20px; font-size: 28px; font-family: 'Goldman';
+            width: 80%; max-width: 350px; 
+            padding: 20px 0; 
+            font-size: 24px; font-family: 'Goldman';
             cursor: pointer; background: linear-gradient(to bottom, #FFD700, #B8860B); 
-            color: #000; border: none; border-radius: 15px; font-weight: bold;
-            transition: 0.2s; box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            color: #000; border: none; border-radius: 50px; font-weight: bold;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.5);
             text-transform: uppercase; letter-spacing: 1px;
+            -webkit-tap-highlight-color: transparent; /* ลบสีเทาเวลากดบนมือถือ */
+            transition: transform 0.1s;
         }
-        button:hover { transform: scale(1.05); filter: brightness(1.25); }
-        button:active { transform: scale(0.95); }
-        button:disabled { background: #222; color: #555; box-shadow: none; filter: grayscale(1); cursor: not-allowed; }
+        button:active { transform: scale(0.96); box-shadow: 0 5px 10px rgba(0,0,0,0.5); }
+        button:disabled { background: #333; color: #555; box-shadow: none; filter: grayscale(1); }
 
-        /* เอฟเฟกต์สั่นตอนจบ */
-        .shake-screen { animation: heavyShake 0.6s ease-out; }
+        .shake-screen { animation: heavyShake 0.8s ease-out; }
         @keyframes heavyShake {
             0%, 100% { transform: translate(0,0); }
-            10%, 30%, 50%, 70%, 90% { transform: translate(-8px, 0); }
-            20%, 40%, 60%, 80% { transform: translate(8px, 0); }
+            10%, 30%, 50%, 70%, 90% { transform: translate(-6px, 2px); }
+            20%, 40%, 60%, 80% { transform: translate(6px, -2px); }
         }
     </style>
 </head>
 <body id="mainBody">
 
     <h1>GOLDEN RISK</h1>
-    <div id="resultText">ชะตาที่ลิขิตด้วยความเสี่ยง...</div>
+    <div id="resultText">แตะปุ่มเพื่อเสี่ยงดวง</div>
 
     <div class="wheel-outer">
         <div class="wheel-container">
             <div class="arrow"></div>
-            <canvas id="wheel" width="600" height="600"></canvas>
+            <canvas id="wheel" width="800" height="800"></canvas>
         </div>
     </div>
 
     <div class="controls">
-        <button id="spinBtn">SPIN THE RISK</button>
+        <button id="spinBtn">SPIN NOW</button>
     </div>
 
 <script>
@@ -98,66 +113,69 @@
     const resultText = document.getElementById("resultText");
     const mainBody = document.getElementById("mainBody");
 
-    // รายการรางวัล 7 ช่อง
-    const options = ["100บาท", "เกลือ", "20บาท", "10บาท", "นํ้าส้มสายชู", "1บาท", "???"];
+    const options = ["ผงชูรส", "เกลือ", "20บาท", "10บาท", "นํ้ามะนาว", "1บาท", "100บาท"];
     const colors = ["#000000", "#d4af37", "#000000", "#d4af37", "#000000", "#d4af37", "#cc0000"];
     
-    // ตั้งค่าเปอร์เซ็นต์ (รวมต้องได้ 100)
-    const _pData = [0.001, 33.499, 10, 15, 20, 20, 1.5]; 
+    // โอกาสรางวัลใหญ่ 0.001%
+    const _pData = [24.24975, 24.24975, 1, 2, 24.24975, 24.24975, 0.001]; 
 
     let currentAngle = 0;
     let isSpinning = false;
     let lastSoundIndex = -1;
 
-    // ระบบเสียงสังเคราะห์
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // แก้ไข AudioContext ให้ทำงานบน iOS Safari ได้ดีขึ้น
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
     function playTick() {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
+        // สร้างเสียงสั้นๆ และทุ้มกว่าเดิมเล็กน้อยให้ดูมีน้ำหนัก
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+        osc.frequency.setValueAtTime(400, audioCtx.currentTime); // เสียงทุ้มลง
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
         osc.start(); osc.stop(audioCtx.currentTime + 0.05);
     }
 
     function draw() {
+        const size = 800; // ขนาด Canvas
+        const center = size / 2;
+        const radius = size / 2 - 10;
         const arc = (Math.PI * 2) / options.length;
-        ctx.clearRect(0, 0, 600, 600);
+        
+        ctx.clearRect(0, 0, size, size);
         
         options.forEach((text, i) => {
             const angle = currentAngle + i * arc;
             
-            // พื้นหลังช่อง
             ctx.fillStyle = colors[i];
             ctx.beginPath();
-            ctx.moveTo(300, 300);
-            ctx.arc(300, 300, 295, angle, angle + arc);
+            ctx.moveTo(center, center);
+            ctx.arc(center, center, radius, angle, angle + arc);
             ctx.fill();
             
-            // เส้นแบ่งขอบทอง
             ctx.strokeStyle = "#FFD700";
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 5; // เส้นหนาขึ้น
             ctx.stroke();
 
-            // ตัวอักษร
             ctx.save();
             ctx.fillStyle = (colors[i] === "#000000" || colors[i] === "#cc0000") ? "#FFD700" : "#000000";
-            ctx.font = "bold 26px Sarabun";
-            ctx.translate(300 + Math.cos(angle + arc/2) * 190, 300 + Math.sin(angle + arc/2) * 190);
+            // ปรับขนาดฟอนต์ให้ใหญ่ขึ้นเพื่อให้อ่านง่ายบนมือถือ
+            ctx.font = "bold 40px Sarabun"; 
+            ctx.translate(center + Math.cos(angle + arc/2) * (radius * 0.65), center + Math.sin(angle + arc/2) * (radius * 0.65));
             ctx.rotate(angle + arc/2 + Math.PI / 2);
             ctx.fillText(text, -ctx.measureText(text).width/2, 0);
             ctx.restore();
         });
 
-        // จุดศูนย์กลาง
+        // จุดกลาง
         ctx.fillStyle = "#FFD700";
         ctx.beginPath();
-        ctx.arc(300, 300, 20, 0, Math.PI * 2);
+        ctx.arc(center, center, 25, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.stroke();
     }
 
@@ -174,37 +192,39 @@
     spinBtn.onclick = () => {
         if (isSpinning) return;
         
+        // ปลุก AudioContext (จำเป็นมากสำหรับ iOS/Android)
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        
         isSpinning = true;
         spinBtn.disabled = true;
-        resultText.innerText = "กำลังคำนวณโชคชะตา...";
+        resultText.innerText = "กำลังหมุนด้วยความเสี่ยง...";
         mainBody.classList.remove("shake-screen");
 
         const winnerIndex = getWinner();
-        const rotationRounds = 18; // หมุนหลายรอบเพื่อให้เร็วในช่วงแรก
+        // ลดรอบหมุนลงเล็กน้อย เพื่อให้รู้สึกว่าวงล้อมันหนัก เริ่มต้นช้าๆ ไม่พุ่งปรู้ด
+        const rotationRounds = 10; 
         const sectorDeg = 360 / options.length;
-        
-        // Random Offset: สุ่มที่หยุดภายในช่อง (15% - 85%)
         const randomPosInSector = (Math.random() * 0.7 + 0.15) * sectorDeg;
         const targetDeg = (rotationRounds * 360) + (270 - (winnerIndex * sectorDeg) - randomPosInSector);
         
         const startDeg = currentAngle * 180 / Math.PI;
         const totalDist = targetDeg - (startDeg % 360);
         
-        // --- ความหนืดขีดสุด: 10 วินาที ---
-        const duration = 10000; 
+        // --- ความหนืดระดับ "ยางมะตอย" ---
+        const duration = 12000; // 12 วินาที (นานขึ้น)
         const startTime = performance.now();
 
         function animate(now) {
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / duration, 1);
             
-            // Ease Out Quint: หนืดมากที่สุดในช่วง 3 วินาทีสุดท้าย
-            const ease = 1 - Math.pow(1 - progress, 5);
+            // ใช้สูตร Power 6 (Hexic) = หนืดกว่าเดิมมาก
+            // วงล้อจะใช้เวลาในการ "คลาน" เข้าเส้นชัยนานขึ้น
+            const ease = 1 - Math.pow(1 - progress, 6);
             
             const currentDeg = startDeg + (totalDist * ease);
             currentAngle = currentDeg * Math.PI / 180;
             
-            // เช็คช่องปัจจุบันเพื่อเล่นเสียงคลิก
             const currentSector = Math.floor((270 - (currentDeg % 360) + 360) % 360 / sectorDeg);
             if (currentSector !== lastSoundIndex) {
                 playTick();
@@ -219,23 +239,25 @@
                 isSpinning = false;
                 spinBtn.disabled = false;
                 resultText.innerText = "ผลลัพธ์: " + options[winnerIndex];
-                
-                // เอฟเฟกต์กระแทกตอนหยุด
                 mainBody.classList.add("shake-screen");
                 confetti({ 
-                    particleCount: 250, spread: 80, origin: { y: 0.6 },
-                    colors: ['#FFD700', '#FFFFFF', '#B8860B', '#FF0000']
+                    particleCount: 200, spread: 90, origin: { y: 0.7 },
+                    colors: ['#FFD700', '#FFFFFF', '#B8860B'],
+                    disableForReducedMotion: true
                 });
             }
         }
         requestAnimationFrame(animate);
     };
 
+    // วาดครั้งแรก
     draw();
+    
+    // ปรับขนาด Canvas อัตโนมัติถ้าย่อขยายจอ
+    window.addEventListener('resize', draw);
 </script>
 </body>
 </html>
-
 
 
 
